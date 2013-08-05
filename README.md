@@ -1,4 +1,6 @@
-Playing with Placester and Google Maps APIs
+learning-maps
+
+Learning Google Maps v3 and Placester APIs
 
 The goal is to be able to:
     1) place markers appropriately within the map bounds
