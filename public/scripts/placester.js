@@ -6,13 +6,13 @@ var plotted = [];
 function initialize() {
 
     var mapOptions = {
-        zoom: 15,
+        zoom: 16,
         center: new google.maps.LatLng(38.895111,-77.036667),
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-    google.maps.event.addListener(map, 'bounds_changed', function() {
+    google.maps.event.addListener(map, 'idle', function() {
         bounds = map.getBounds();
         drawMarkers();
     });
@@ -31,36 +31,68 @@ function boundsToCoords() {
     return coords;
 }
 
+
 function drawMarkers() {
     var url = '../placesterbox.json';
+    var page = 0;
 
     coords = boundsToCoords();
 
    $.ajax({
         type: "POST",
         url: url,
-        data: {maxlat:coords.maxlat,minlat:coords.minlat,minlong:coords.minlong,maxlong:coords.maxlong},
+        data: {maxlat:coords.maxlat,minlat:coords.minlat,minlong:coords.minlong,maxlong:coords.maxlong, page:page},
         dataType: "json",
         success: function(json) {
+            offset = json[0].offset;
+            total = json[0].total;
             if(markerLocations) {
-                for(i in markerLocations) {
+                for(var i in markerLocations) {
                     if(!bounds.contains(markerLocations[i].position)) markerLocations[i].setVisible(false);
                     if(bounds.contains(markerLocations[i].position) && !markerLocations[i].getVisible()) {
                         markerLocations[i].setVisible(true);
                     }
                 }
             }
-            $.each(json, function(i, entry) {
+            $.each(json[1], function(i, entry) {
                 if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
                     plotted.push(entry.id);
                     plotSingleMarker(entry);
                 }
             });
-        },
-        error: function(err){
-            console.log(err);
-        }
-    });
+            while(offset+50 < total) {
+                offset += 50;
+                page +=1;
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: {maxlat:coords.maxlat,minlat:coords.minlat,minlong:coords.minlong,maxlong:coords.maxlong,page:page},
+                    dataType: "json",
+                    success: function(json) {
+                        if(markerLocations) {
+                            for(var i in markerLocations) {
+                                if(!bounds.contains(markerLocations[i].position)) markerLocations[i].setVisible(false);
+                                if(bounds.contains(markerLocations[i].position) && !markerLocations[i].getVisible()) {
+                                    markerLocations[i].setVisible(true);
+                                }
+                            }
+                        }
+                        $.each(json[1], function(i, entry) {
+                            if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
+                                plotted.push(entry.id);
+                                plotSingleMarker(entry);
+                            }
+                        });
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    }
+                })
+            }},
+            error: function(err){
+                console.log(err);
+            }
+   })
 }
 
 function findMarkerVal(markerArray, property, propValue) {

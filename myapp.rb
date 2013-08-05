@@ -25,8 +25,9 @@ class MyApp < Sinatra::Base
         @minlong = params[:minlong]
         @maxlat = params[:maxlat]
         @maxlong = params[:maxlong]
+        @page = params[:page]
         #thisbounds = JSON.parse(request.body.read)
-        Placester.new.getbox(@minlat,@minlong, @maxlat, @maxlong)
+        Placester.new.getbox(@minlat,@minlong, @maxlat, @maxlong, @page)
     end
 end
 
