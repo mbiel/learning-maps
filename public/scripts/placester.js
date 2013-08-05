@@ -33,6 +33,22 @@ function boundsToCoords() {
     return coords;
 }
 
+function checkmarkers(json) {
+    if(markerLocations) {
+        for(var i in markerLocations) {
+            if(!bounds.contains(markerLocations[i].position)) markerLocations[i].setVisible(false);
+            if(bounds.contains(markerLocations[i].position) && !markerLocations[i].getVisible()) {
+                markerLocations[i].setVisible(true);
+            }
+        }
+    }
+    $.each(json[1], function(i, entry) {
+        if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
+            plotted.push(entry.id);
+            plotSingleMarker(entry);
+        }
+    });
+}
 
 function drawMarkers() {
     var url = '../placesterbox.json';
@@ -48,44 +64,17 @@ function drawMarkers() {
         success: function(json) {
             offset = json[0].offset;
             total = json[0].total;
-            if(markerLocations) {
-                for(var i in markerLocations) {
-                    if(!bounds.contains(markerLocations[i].position)) markerLocations[i].setVisible(false);
-                    if(bounds.contains(markerLocations[i].position) && !markerLocations[i].getVisible()) {
-                        markerLocations[i].setVisible(true);
-                    }
-                }
-            }
-            $.each(json[1], function(i, entry) {
-                if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
-                    plotted.push(entry.id);
-                    plotSingleMarker(entry);
-                }
-            });
+            checkmarkers(json);
             while(offset+50 < total) {
                 offset += 50;
                 page +=1;
+                console.log("Getting results "+(50*page)+"-"+(50*page+50)+" of "+total);
                 $.ajax({
                     type: "POST",
                     url: url,
                     data: {maxlat:coords.maxlat,minlat:coords.minlat,minlong:coords.minlong,maxlong:coords.maxlong,page:page},
                     dataType: "json",
-                    success: function(json) {
-                        if(markerLocations) {
-                            for(var i in markerLocations) {
-                                if(!bounds.contains(markerLocations[i].position)) markerLocations[i].setVisible(false);
-                                if(bounds.contains(markerLocations[i].position) && !markerLocations[i].getVisible()) {
-                                    markerLocations[i].setVisible(true);
-                                }
-                            }
-                        }
-                        $.each(json[1], function(i, entry) {
-                            if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
-                                plotted.push(entry.id);
-                                plotSingleMarker(entry);
-                            }
-                        });
-                    },
+                    success: checkmarkers(json),
                     error: function(err) {
                         console.log(err);
                     }
