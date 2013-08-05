@@ -6,8 +6,8 @@ var plotted = [];
 function initialize() {
 
     var mapOptions = {
-        zoom: 8,
-        center: new google.maps.LatLng(42.3989,-71.1324),
+        zoom: 15,
+        center: new google.maps.LatLng(38.895111,-77.036667),
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
@@ -53,7 +53,7 @@ function drawMarkers() {
             $.each(json, function(i, entry) {
                 if(findMarkerVal(markerLocations, "title", entry.id) == -1) {
                     plotted.push(entry.id);
-                    plotSingleMarker(entry.latitude, entry.longitude, entry.id);
+                    plotSingleMarker(entry);
                 }
             });
         },
@@ -72,13 +72,13 @@ function findMarkerVal(markerArray, property, propValue) {
     return -1;
 }
 
-function plotSingleMarker(lat, lon, id) {
-    var content = '<div id="content"><p>'+id+'</p></div>';
+function plotSingleMarker(entry) {
+    var content = '<div id="content"><p>'+entry.description+'</p><p><a href="'+entry.url+'">See More</a></p></div>';
     var infowindow = new google.maps.InfoWindow({content: content});
     var marker = new google.maps.Marker({
-    position: new google.maps.LatLng(lat,lon),
+    position: new google.maps.LatLng(entry.latitude,entry.longitude),
     map: map,
-    title: id,
+    title: entry.id,
     animation: google.maps.Animation.DROP
     });
     google.maps.event.addListener(marker, 'click', function() {

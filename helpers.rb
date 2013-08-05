@@ -28,9 +28,11 @@ class Placester
         topost = []
         response["listings"].each do |item|
             id = item["id"]
+            desc = item["cur_data"]["desc"]
+            url = item["cur_data"]["url"]
             latitude = item["location"]["coords"][0]
             longitude = item["location"]["coords"][1]
-            topost << {:id => id, :latitude => latitude, :longitude => longitude}
+            topost << {:id => id, :latitude => latitude, :longitude => longitude, :description => desc, :url => url}
         end
         return topost.to_json
     end
